@@ -1,0 +1,19 @@
+{
+  "name": "AffinityHub — Group Records & Live Sessions",
+  "short_name": "AffinityHub",
+  "description": "Keep verified records of school alumni, workplace colleagues, and hometown communities with live audio/video sessions.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "categories": ["social", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%230f172a'/><circle cx='256' cy='256' r='180' fill='none' stroke='%2338bdf8' stroke-width='36'/><path d='M180 256c0-42 38-76 76-76s76 34 76 76-38 76-76 76-76-34-76-76z' fill='none' stroke='%2310b981' stroke-width='28'/><text x='256' y='285' font-size='140' text-anchor='middle' fill='%23f8fafc' font-family='sans-serif' font-weight='800'>∞</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

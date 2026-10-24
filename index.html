@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-font="inter" data-size="normal" data-shape="smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AffinityHub — Group Records, Live Sessions &amp; Community Suite</title>
+    
+    <!-- Mobile Web App & PWA Settings (Android & iOS) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AffinityHub">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Google Fonts for Typography Choices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/live-session.css">
+    <link rel="stylesheet" href="css/cropper.css">
+    <link rel="stylesheet" href="css/calendar.css">
+</head>
+<body>
+
+<div id="app-shell">
+    <!-- ==================== HEADER ==================== -->
+    <header class="app-header">
+        <div class="brand-wrapper" onclick="App.switchTab('groups-catalog')">
+            <div class="brand-logo-icon">♾️</div>
+            <div class="brand-text">
+                <h1>AffinityHub</h1>
+                <p>Alumni, Workplace &amp; Hometown Associations</p>
+            </div>
+        </div>
+
+        <nav class="header-center-nav">
+            <button class="nav-tab-btn active" data-target-tab="groups-catalog">
+                <span>👥</span> Groups
+            </button>
+            <button class="nav-tab-btn" data-target-tab="group-detail">
+                <span>📂</span> Records
+            </button>
+            <button class="nav-tab-btn" data-target-tab="live-room">
+                <span>🎙️</span> Live Studio
+            </button>
+            <button class="nav-tab-btn" data-target-tab="calendar-view">
+                <span>📅</span> Calendar
+            </button>
+            <button class="nav-tab-btn" data-target-tab="intergroup-summits">
+                <span>🤝</span> Cross-Group
+            </button>
+            <button class="nav-tab-btn" data-target-tab="vault-manager">
+                <span>🔐</span> Vault
+            </button>
+            <button class="nav-tab-btn" data-target-tab="master-profile">
+                <span>👤</span> Profile
+            </button>
+            <button class="nav-tab-btn" data-target-tab="activity-audit">
+                <span>📜</span> Audit
+            </button>
+            <button class="nav-tab-btn" data-target-tab="customize-view">
+                <span>🎨</span> Settings
+            </button>
+        </nav>
+
+        <div class="header-actions">
+            <!-- Header Auth Controls (Autonomous Database Sign-in/Register/Switch) -->
+            <div id="header-auth-controls" style="display: flex; gap: 0.4rem; align-items: center;"></div>
+
+            <!-- Header Quick Profile Badge -->
+            <div class="user-quick-profile" onclick="App.switchTab('master-profile')" title="View Master Profile &amp; Auto-fill Data">
+                <div class="user-quick-avatar" id="user-quick-avatar-el">EM</div>
+                <div class="user-quick-info">
+                    <div class="user-quick-name" id="user-quick-name-el">Elijah Mensah</div>
+                    <div class="user-quick-role" id="user-quick-role-el">Cloud Architect</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN VIEWPORT ==================== -->
+    <main class="main-viewport">
+
+        <!-- ==============================================================
+             TAB 1: GROUPS CATALOG & DIRECTORY
+             ============================================================== -->
+        <section id="tab-groups-catalog" class="tab-pane active">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>👥 Associations &amp; Groups Directory</h2>
+                    <p>Keep verified records of school alumni, workplace colleagues, and hometown communities.</p>
+                </div>
+                <div class="banner-controls">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="group-search-input" class="search-input" placeholder="Search by group title, school, or keyword...">
+                    </div>
+                    <select id="group-category-filter" class="form-control" style="width: auto;">
+                        <option value="all">All Association Types</option>
+                        <option value="school">School Alumni</option>
+                        <option value="workplace">Workplace Colleagues</option>
+                        <option value="hometown">Hometown Associations</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="Groups.openCreateGroupModal()">
+                        <span>➕</span> Create New Group
+                    </button>
+                </div>
+            </div>
+
+            <!-- Groups Cards Grid -->
+            <div class="card-grid" id="groups-grid-container">
+                <!-- Dynamically populated by Groups.renderGroupDirectory() -->
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 2: GROUP RECORDS & WORKSPACE
+             ============================================================== -->
+        <section id="tab-group-detail" class="tab-pane">
+            <div class="section-banner">
+                <div>
+                    <span id="workspace-group-category" class="badge badge-primary">School Alumni</span>
+                    <h2 id="workspace-group-title" style="margin-top: 0.35rem;">Achimota School '08 Alumni Association</h2>
+                    <p id="workspace-group-desc">Association records and criteria portal.</p>
+                    <div id="workspace-admin-list" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;"></div>
+                </div>
+
+                <div class="banner-controls">
+                    <button class="btn btn-success" onclick="LiveSession.launchSession({ title: document.getElementById('workspace-group-title').textContent, groupId: Groups.activeGroupId, mode: 'both' })">
+                        <span>🎙️</span> Launch Live Discussion
+                    </button>
+                    <button class="btn btn-secondary" onclick="Groups.openShareModal(Groups.activeGroupId)">
+                        <span>📱</span> Group QR &amp; Link
+                    </button>
+                    <button class="btn btn-outline" onclick="Groups.exportRecordsCSV()">
+                        <span>📥</span> Export CSV Records
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dual Admin Management Bar (Visible to Admins) -->
+            <div id="workspace-admin-tools" class="card" style="margin-bottom: 1.5rem; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-size: 1.5rem;">👑</span>
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Group Administrator Control Center</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Manage criteria schema, change admins, and configure join passwords.</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="AIAgenda.openModal(Groups.activeGroupId)">
+                        <span>🤖</span> Draft Agenda (AI Gateway)
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="Groups.openCriteriaManager()">
+                        <span>⚙️</span> Set / Edit Criteria (1 Admin at a time)
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="Groups.openChangeAdminModal()">
+                        <span>🔄</span> Change / Reassign Admins
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="Groups.openGroupPasswordSettingsModal()">
+                        <span>🔑</span> Change Group Password
+                    </button>
+                </div>
+            </div>
+
+            <!-- Criteria Records Table Card -->
+            <div class="card" style="padding: 1.25rem; overflow-x: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.15rem; font-weight: 700;">📋 Member Criteria Records Database</h3>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">All fields defined by group admins</span>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead id="workspace-records-thead" style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <!-- Dynamically populated -->
+                    </thead>
+                    <tbody id="workspace-records-tbody" style="divide-y: 1px solid var(--border-color);">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 3: MASTER USER PROFILE & SMART AUTO-FILL
+             ============================================================== -->
+        <section id="tab-master-profile" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>👤 Master Individual Records &amp; Avatar Studio</h2>
+                    <p>Keep your verified criteria records saved so the app automatically provides them whenever you join groups without re-typing.</p>
+                </div>
+                <div class="banner-controls">
+                    <button class="btn btn-primary" onclick="Profile.saveMasterProfileFromForm()">
+                        <span>💾</span> Save Master Records
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: flex-start;">
+                <!-- Profile Avatar Card -->
+                <div class="card" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div id="master-profile-avatar-display" style="margin-top: 0.5rem;">
+                        <!-- Avatar rendered by Profile.js -->
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);" id="master-prof-display-name">Elijah Mensah</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);" id="master-prof-display-vocation">Senior Cloud Solutions Architect</div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); padding: 0 0.5rem;">
+                        Photos look complete with avatar cropping and preview. When no photo is uploaded, high-contrast color-coded initials are shown.
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                        <button class="btn btn-primary btn-sm" onclick="Profile.openAvatarCropperModal()">
+                            <span>📷</span> Upload &amp; Crop Avatar
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="Profile.removeProfilePhoto()">
+                            Revert to Color-Coded Initials
+                        </button>
+                    </div>
+
+                    <!-- Auto-fill Info Box -->
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed var(--success); padding: 0.85rem; border-radius: var(--radius-md); text-align: left; width: 100%; margin-top: 0.5rem;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--success); display: flex; align-items: center; gap: 0.35rem;">
+                            <span>✨</span> Smart Auto-Fill Active
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            Your criteria entries here are stored locally in your private master vault. When you enter any group, you can populate all criteria fields with 1 click.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Master Criteria Form Fields -->
+                <div class="card">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>📋 Individual Particulars &amp; Criteria Data</span>
+                        <span class="badge badge-primary">Auto-fill Ready</span>
+                    </h3>
+
+                    <form id="master-profile-form" onsubmit="event.preventDefault(); Profile.saveMasterProfileFromForm();">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="prof-full-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="prof-email" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Contact (Phone / WhatsApp)</label>
+                                <input type="text" id="prof-contact" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" id="prof-dob" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Place of Birth (Town / City / Country)</label>
+                                <input type="text" id="prof-pob" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Residential Location</label>
+                                <input type="text" id="prof-location" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Vocation / Occupation</label>
+                                <input type="text" id="prof-vocation" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Position Held / Holds in Group</label>
+                                <input type="text" id="prof-position" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Marital Status</label>
+                                <select id="prof-marital" class="form-control">
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hobbies &amp; Interests</label>
+                                <input type="text" id="prof-hobbies" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 0.5rem;">
+                            <label class="form-label">What the Person is Doing Currently</label>
+                            <textarea id="prof-current-doing" class="form-control" rows="3" placeholder="Describe your current projects, enterprises, or academic pursuits..."></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                            <button type="button" class="btn btn-secondary" onclick="Profile.load(); Profile.renderMasterProfileForm();">Discard Changes</button>
+                            <button type="submit" class="btn btn-primary">Save Master Records</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 4: SECURE PASSWORD VAULT & GENERATOR
+             ============================================================== -->
+        <section id="tab-vault-manager" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>🔐 Secure Password Vault &amp; Generator</h2>
+                    <p>Generate high-entropy strong passwords, view or copy credentials anytime, and reuse past passwords safely.</p>
+                </div>
+                <div class="banner-controls">
+                    <button class="btn btn-secondary" onclick="App.openModal('reuse-password-modal')">
+                        <span>🔄</span> View Password History / Reuse
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; align-items: flex-start;">
+                <!-- Password Generator Card -->
+                <div class="card">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">⚡ Strong Password Generator</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Generated Password</label>
+                        <div class="input-with-button">
+                            <input type="text" id="generated-pwd-display" class="form-control" style="font-family: monospace; font-weight: 700; font-size: 0.95rem; color: var(--accent);" readonly>
+                            <button class="btn btn-primary" onclick="Vault.copyPassword(document.getElementById('generated-pwd-display').value)" title="Copy">📋</button>
+                        </div>
+                    </div>
+
+                    <!-- Strength Meter -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.25rem;">
+                            <span style="color: var(--text-muted);">Strength:</span>
+                            <span id="pwd-strength-text" style="font-weight: 700;">Very Strong</span>
+                        </div>
+                        <div style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden;">
+                            <div id="pwd-strength-bar" style="width: 100%; height: 100%; background: var(--accent); transition: var(--transition);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Generator Controls -->
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <span class="form-label">Password Length:</span>
+                            <span id="pwd-length-value" style="font-weight: 700; color: var(--accent);">16</span>
+                        </div>
+                        <input type="range" id="pwd-length-slider" min="8" max="40" value="16" class="cropper-zoom-slider">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="opt-pwd-upper" class="pwd-gen-option" checked>
+                            Uppercase Letters (A-Z)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="opt-pwd-lower" class="pwd-gen-option" checked>
+                            Lowercase Letters (a-z)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="opt-pwd-num" class="pwd-gen-option" checked>
+                            Numbers (0-9)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="opt-pwd-sym" class="pwd-gen-option" checked>
+                            Special Symbols (!@#$%^&*)
+                        </label>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button id="generate-pwd-trigger-btn" class="btn btn-secondary" style="width: 100%;">
+                            <span>🎲</span> Generate New Password
+                        </button>
+                        <button class="btn btn-primary" onclick="Vault.addRecord({ title: 'Generated Password', password: document.getElementById('generated-pwd-display').value, category: 'Account' }); Vault.renderVaultList(); App.showToast('Saved to vault!', 'success');" style="width: 100%;">
+                            <span>💾</span> Save to Password Vault
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vault Records List -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <h3 style="font-size: 1.15rem; font-weight: 700;">🗄️ Stored Account &amp; Group Passwords</h3>
+                        <div class="search-wrapper" style="max-width: 260px;">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="vault-search-input" class="search-input" placeholder="Search vault...">
+                        </div>
+                    </div>
+
+                    <div id="vault-records-list">
+                        <!-- Populated by Vault.renderVaultList() -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 5: EVENT CALENDAR & SCHEDULING
+             ============================================================== -->
+        <section id="tab-calendar-view" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>📅 Group Events Calendar</h2>
+                    <p>Set dates and times for alumni reunions, syndicate meetups, AGMs, and audio/video discussions.</p>
+                </div>
+                <div class="banner-controls">
+                    <button class="btn btn-primary" onclick="Calendar.openAddEventModal()">
+                        <span>➕</span> Schedule Group Event
+                    </button>
+                </div>
+            </div>
+
+            <div class="calendar-layout">
+                <!-- Main Month Grid Card -->
+                <div class="calendar-main-card">
+                    <div class="calendar-nav-bar">
+                        <h3 id="calendar-month-display" class="calendar-month-title">October 2026</h3>
+                        <div class="calendar-nav-controls">
+                            <button id="calendar-prev-btn" class="btn btn-secondary btn-sm">◀ Prev</button>
+                            <button id="calendar-next-btn" class="btn btn-secondary btn-sm">Next ▶</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-weekdays-row">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+
+                    <div id="calendar-grid-cells" class="calendar-days-grid">
+                        <!-- Populated by Calendar.js -->
+                    </div>
+                </div>
+
+                <!-- Upcoming Events Sidebar -->
+                <div class="calendar-sidebar">
+                    <div class="card">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">📌 Upcoming Group Events</h3>
+                        <div id="calendar-upcoming-list" class="upcoming-events-list">
+                            <!-- Populated by Calendar.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 6: CROSS-GROUP CONNECTIONS (INTER-GROUP SUMMITS)
+             ============================================================== -->
+        <section id="tab-intergroup-summits" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>🤝 Cross-Group Connections &amp; Inter-Group Summits</h2>
+                    <p>Connect one group with another for joint live discussions using a single joint connecting password, link, or QR code.</p>
+                </div>
+                <div class="banner-controls">
+                    <button class="btn btn-primary" onclick="InterGroup.openCreateSummitModal()">
+                        <span>➕</span> Connect Two Groups
+                    </button>
+                </div>
+            </div>
+
+            <!-- Intergroup Info Card -->
+            <div class="card" style="margin-bottom: 1.5rem; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3);">
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <span style="font-size: 1.8rem;">🌐</span>
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Bilateral Governance &amp; Single Access Token</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.15rem;">
+                            Each participating group retains their normal members and respective dual admins. You can optionally elect or appoint a Meeting Chairperson, or run as a collaborative co-chaired session.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summits List -->
+            <div id="intergroup-summits-list">
+                <!-- Populated by InterGroup.renderSummitsList() -->
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 7: LIVE SESSION STUDIO ROOM
+             ============================================================== -->
+        <section id="tab-live-room" class="tab-pane">
+            <div class="live-session-wrapper" id="live-session-container">
+                <!-- Top Live Bar -->
+                <div class="live-top-bar">
+                    <div class="live-session-info">
+                        <div class="live-status-pill">
+                            <span class="live-pulse-dot"></span>
+                            <span>Live Discussion</span>
+                        </div>
+                        <div class="recording-indicator-pill" id="live-recording-indicator">
+                            <span class="recording-pulse-dot"></span>
+                            <span>REC <span id="live-recording-timer">00:00</span></span>
+                        </div>
+                        <!-- On-Screen System Audio Indicators -->
+                        <span id="sys-audio-allowed-badge" class="system-audio-pill system-audio-allowed" style="display: none;">
+                            <span>🟢</span> System Audio: Allowed
+                        </span>
+                        <span id="sys-audio-blocked-badge" class="system-audio-pill system-audio-blocked" style="display: none;" onclick="LiveSession.openSystemAudioHelpModal()" title="System audio blocked or not shared. Click for help &amp; auto-retry.">
+                            <span>🔴</span> System Audio: Blocked <span style="text-decoration: underline; font-weight: 500;">(Fix)</span>
+                        </span>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #ffffff;" id="live-room-title-display">
+                            Achimota Alumni Strategy &amp; Reunion Session
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <div id="live-chairperson-pill" class="chairperson-pill" style="display: none;">
+                            <span>👑 Chairperson:</span>
+                            <span id="live-chairperson-name">Dr. Nana Akua Mensah</span>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('live-session-container').classList.toggle('is-fullscreen')" title="Toggle Fullscreen">
+                            ⛶ Fullscreen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Studio Stage -->
+                <div class="live-studio-stage">
+                    <div class="video-grid-container" id="live-video-grid-container">
+                        <!-- Screen Share Presentation Stage (Hidden by default) -->
+                        <div class="video-tile screen-share-tile" id="screen-share-stage-tile" style="display: none;">
+                            <video id="screen-share-video" autoplay playsinline style="display: none;"></video>
+                            <canvas id="screen-share-canvas" style="width: 100%; height: 100%;"></canvas>
+                            <div class="tile-overlay-info">
+                                <span>🖥️ Live Screen Share Stage</span>
+                            </div>
+                        </div>
+
+                        <!-- Local User Video Tile -->
+                        <div class="video-tile" id="user-video-tile">
+                            <video id="user-local-video" autoplay playsinline muted style="display: none;"></video>
+                            <div id="user-camera-placeholder" class="camera-off-placeholder">
+                                <!-- Initials avatar -->
+                            </div>
+                            <div class="tile-overlay-info">
+                                <span class="tile-name-tag">You (Elijah Mensah)</span>
+                                <div class="audio-wave-bars">
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                </div>
+                            </div>
+                            <div class="tile-audio-status" id="local-mic-status-icon">🎤</div>
+                        </div>
+
+                        <!-- Remote Participant 1: Kwame Asante (Admin 1) -->
+                        <div class="video-tile active-speaker" id="tile-kwame">
+                            <div class="camera-off-placeholder" style="background: linear-gradient(135deg, #0c4a6e, #075985);">
+                                <div class="avatar avatar-xl" style="background-color: #0284c7;">KA</div>
+                                <div style="font-weight: 600; font-size: 0.85rem; color: #ffffff; margin-top: 0.35rem;">Kwame Asante (Admin 1)</div>
+                            </div>
+                            <div class="tile-overlay-info">
+                                <span class="tile-name-tag">Kwame Asante [Admin 1]</span>
+                                <div class="audio-wave-bars">
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                </div>
+                            </div>
+                            <div class="tile-audio-status">🎤</div>
+                        </div>
+
+                        <!-- Remote Participant 2: Dr. Nana Akua Mensah (Admin 2) -->
+                        <div class="video-tile" id="tile-nana">
+                            <div class="camera-off-placeholder" style="background: linear-gradient(135deg, #4c1d95, #581c87);">
+                                <div class="avatar avatar-xl" style="background-color: #7c3aed;">NM</div>
+                                <div style="font-weight: 600; font-size: 0.85rem; color: #ffffff; margin-top: 0.35rem;">Dr. Nana Akua Mensah (Admin 2)</div>
+                            </div>
+                            <div class="tile-overlay-info">
+                                <span class="tile-name-tag">Dr. Nana Akua Mensah [Admin 2]</span>
+                                <div class="audio-wave-bars">
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                    <span class="wave-bar"></span>
+                                </div>
+                            </div>
+                            <div class="tile-audio-status">🎤</div>
+                        </div>
+
+                        <!-- Remote Participant 3: Abena Osei-Bonsu (Legal Advisor) -->
+                        <div class="video-tile" id="tile-abena">
+                            <div class="camera-off-placeholder" style="background: linear-gradient(135deg, #831843, #9d174d);">
+                                <div class="avatar avatar-xl" style="background-color: #db2777;">AO</div>
+                                <div style="font-weight: 600; font-size: 0.85rem; color: #ffffff; margin-top: 0.35rem;">Abena Osei-Bonsu</div>
+                            </div>
+                            <div class="tile-overlay-info">
+                                <span class="tile-name-tag">Abena Osei-Bonsu</span>
+                            </div>
+                            <div class="tile-audio-status">🎤</div>
+                        </div>
+                    </div>
+
+                    <!-- Slide-Out Sidebar Drawer (Chat & Shared Files) -->
+                    <div class="live-sidebar-drawer" id="live-sidebar-drawer">
+                        <div class="sidebar-header">
+                            <div class="sidebar-tabs">
+                                <button id="sidebar-tab-chat-btn" class="sidebar-tab-btn active" onclick="LiveSession.switchSidebarTab('chat')">💬 Live Chat</button>
+                                <button id="sidebar-tab-files-btn" class="sidebar-tab-btn" onclick="LiveSession.switchSidebarTab('files')">📁 Files (<span id="dock-files-badge">2</span>)</button>
+                            </div>
+                            <button class="modal-close-btn" onclick="LiveSession.toggleSidebar()">✕</button>
+                        </div>
+
+                        <!-- Live Chat Section -->
+                        <div id="sidebar-chat-section" style="display: flex; flex-direction: column; height: calc(100% - 60px);">
+                            <div class="sidebar-body" id="live-chat-messages-list">
+                                <!-- Chat bubbles -->
+                            </div>
+                            <div class="chat-input-bar">
+                                <input type="text" id="live-chat-input" class="form-control" placeholder="Type a message to the group...">
+                                <button class="btn btn-primary btn-sm" onclick="LiveSession.sendChatMessage()">Send</button>
+                            </div>
+                        </div>
+
+                        <!-- Shared Files Section -->
+                        <div id="sidebar-files-section" style="display: none; flex-direction: column; height: calc(100% - 60px);">
+                            <div class="sidebar-body" id="live-shared-files-list">
+                                <!-- Shared file cards -->
+                            </div>
+                            <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-color);">
+                                <input type="file" id="live-file-upload-input" style="display: none;">
+                                <button class="btn btn-primary btn-sm" style="width: 100%;" onclick="document.getElementById('live-file-upload-input').click()">
+                                    📎 Upload &amp; Share File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Virtual Background & Video Filters Floating Drawer -->
+                    <div class="effects-drawer" id="live-effects-drawer">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700;">✨ Studio Effects &amp; Virtual Backgrounds</h4>
+                            <button class="modal-close-btn" onclick="LiveSession.toggleEffectsDrawer()">✕</button>
+                        </div>
+
+                        <!-- Video Filters -->
+                        <div class="effects-section-title">Video Color Filters</div>
+                        <div class="effects-grid">
+                            <div class="effect-card filter-effect-btn active" data-filter="none" onclick="LiveSession.applyVideoFilter('none')">Normal</div>
+                            <div class="effect-card filter-effect-btn" data-filter="studio" onclick="LiveSession.applyVideoFilter('studio')">Studio Glow</div>
+                            <div class="effect-card filter-effect-btn" data-filter="warm" onclick="LiveSession.applyVideoFilter('warm')">Warm Sunset</div>
+                            <div class="effect-card filter-effect-btn" data-filter="cool" onclick="LiveSession.applyVideoFilter('cool')">Cool Tech</div>
+                            <div class="effect-card filter-effect-btn" data-filter="mono" onclick="LiveSession.applyVideoFilter('mono')">Monochrome</div>
+                            <div class="effect-card filter-effect-btn" data-filter="blur" onclick="LiveSession.applyVideoFilter('blur')">Soft Focus</div>
+                        </div>
+
+                        <!-- Virtual Backgrounds -->
+                        <div class="effects-section-title">Virtual Background Replacement</div>
+                        <div class="effects-grid">
+                            <div class="effect-card bg-effect-btn active" data-bg="none" onclick="LiveSession.applyVirtualBackground('none')">None</div>
+                            <div class="effect-card bg-effect-btn" data-bg="blur" onclick="LiveSession.applyVirtualBackground('blur')">Blurred Room</div>
+                            <div class="effect-card bg-effect-btn" data-bg="office" onclick="LiveSession.applyVirtualBackground('office')">Executive Office</div>
+                            <div class="effect-card bg-effect-btn" data-bg="library" onclick="LiveSession.applyVirtualBackground('library')">Campus Library</div>
+                            <div class="effect-card bg-effect-btn" data-bg="beach" onclick="LiveSession.applyVirtualBackground('beach')">Tropical Beach</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Language Translation & Subtitles Dock (Beneath Session) -->
+                <div class="live-captions-dock">
+                    <div class="caption-content-box">
+                        <div class="caption-speaker-tag" id="live-caption-speaker">Kwame Asante:</div>
+                        <div class="caption-text-body" id="live-caption-text">
+                            Welcome everyone to our group session! Let us review the agenda items for the year.
+                        </div>
+                    </div>
+
+                    <div class="caption-language-selector">
+                        <span>🌐 Subtitles:</span>
+                        <select id="live-caption-lang-select" class="caption-select">
+                            <option value="en">English (Original)</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="tw">Twi / Akan (Ghana)</option>
+                            <option value="sw">Kiswahili (East Africa)</option>
+                            <option value="pt">Português (Portuguese)</option>
+                            <option value="zh">中文 (Chinese)</option>
+                            <option value="ar">العربية (Arabic)</option>
+                            <option value="hi">हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bottom Control Dock -->
+                <div class="live-controls-dock">
+                    <!-- Audio & Video Toggles -->
+                    <div class="dock-controls-group">
+                        <button id="live-btn-mic" class="dock-btn active" title="Mute Microphone">🎤</button>
+                        <button id="live-btn-camera" class="dock-btn active" title="Turn Off Camera">📹</button>
+                        <button id="live-btn-screen" class="dock-btn" title="Share Screen">🖥️</button>
+                        <button id="live-btn-record" class="dock-btn" title="Start Recording Session">⏺️</button>
+                        <button id="live-btn-effects" class="dock-btn" title="Filters &amp; Virtual Backgrounds">✨</button>
+                    </div>
+
+                    <!-- Side Drawers & Collaboration -->
+                    <div class="dock-controls-group">
+                        <button id="live-btn-chat-toggle" class="dock-btn" title="In-Session Chat">💬</button>
+                        <button id="live-btn-files-toggle" class="dock-btn" title="Share Files">📎</button>
+                        <button id="live-btn-share-toggle" class="dock-btn" title="Invite via QR &amp; Link">📱</button>
+                        <button id="live-btn-leave" class="dock-btn danger" title="Leave Live Session">📞</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 8: ACTIVITY AUDIT RECORDS & ACTIVITY REUSE
+             ============================================================== -->
+        <section id="tab-activity-audit" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>📜 Group &amp; User Activity Audit Records</h2>
+                    <p>Keep comprehensive records of all group activities and account events. Reuse or duplicate past activities with 1 click.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: flex-start;">
+                <!-- Group Activities Card -->
+                <div class="card">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>👥</span> Group Activities Log
+                    </h3>
+                    <div id="group-activities-timeline">
+                        <!-- Populated by Activity.js -->
+                    </div>
+                </div>
+
+                <!-- User Account Activities Card -->
+                <div class="card">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>👤</span> Account &amp; Security Activities Log
+                    </h3>
+                    <div id="user-activities-timeline">
+                        <!-- Populated by Activity.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================================
+             TAB 9: CUSTOMIZATION (THEME, FONT, SHAPE & LANGUAGE)
+             ============================================================== -->
+        <section id="tab-customize-view" class="tab-pane">
+            <div class="section-banner">
+                <div class="section-banner-title">
+                    <h2>🎨 Personalization &amp; Preferences</h2>
+                    <p>Change color themes, font styles, corner shapes, typography sizes, and your preferred application language.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                <!-- Color Themes Card -->
+                <div class="card">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">🎨 App Color Theme</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <button class="btn btn-outline theme-choice-btn active" data-set-theme="dark">
+                            🌑 Obsidian Dark
+                        </button>
+                        <button class="btn btn-outline theme-choice-btn" data-set-theme="light">
+                            ☀️ Clean Light
+                        </button>
+                        <button class="btn btn-outline theme-choice-btn" data-set-theme="midnight">
+                            🌌 Midnight Blue
+                        </button>
+                        <button class="btn btn-outline theme-choice-btn" data-set-theme="emerald">
+                            🌲 Emerald Forest
+                        </button>
+                        <button class="btn btn-outline theme-choice-btn" data-set-theme="purple">
+                            🔮 Royal Purple
+                        </button>
+                        <button class="btn btn-outline theme-choice-btn" data-set-theme="amber">
+                            🌅 Sunset Amber
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Typography & Font Style -->
+                <div class="card">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">🔤 Font Family Style</h3>
+                    <div class="form-group">
+                        <label class="form-label">Font Family</label>
+                        <select id="pref-font-select" class="form-control">
+                            <option value="inter">Inter (Modern &amp; Balanced)</option>
+                            <option value="roboto">Roboto (Clean Geometric Sans)</option>
+                            <option value="merriweather">Merriweather (Classic Editorial Serif)</option>
+                            <option value="mono">JetBrains Mono (Technical Monospace)</option>
+                            <option value="dyslexic">Atkinson / Dyslexic-Friendly</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Font Size</label>
+                        <select id="pref-size-select" class="form-control">
+                            <option value="small">Small (87.5%)</option>
+                            <option value="normal" selected>Normal (100%)</option>
+                            <option value="large">Large (115%)</option>
+                            <option value="xlarge">Extra Large (130%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- UI Shapes & Border Radius -->
+                <div class="card">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">📐 Shape &amp; Corner Styling</h3>
+                    <div class="form-group">
+                        <label class="form-label">Interface Corner Radius</label>
+                        <select id="pref-shape-select" class="form-control">
+                            <option value="sharp">Sharp (Square / 0px)</option>
+                            <option value="rounded">Subtle Rounded (6px)</option>
+                            <option value="smooth" selected>Modern Smooth (12px)</option>
+                            <option value="pill">Soft Organic / Pill (24px)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Preferred Language Preference -->
+                <div class="card">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">🌐 Preferred Language Setting</h3>
+                    <div class="form-group">
+                        <label class="form-label">Choose preferred language (aside account name)</label>
+                        <select id="pref-lang-select" class="form-control">
+                            <option value="en">🇬🇧 English</option>
+                            <option value="es">🇪🇸 Español (Spanish)</option>
+                            <option value="fr">🇫🇷 Français (French)</option>
+                            <option value="de">🇩🇪 Deutsch (German)</option>
+                            <option value="tw">🇬🇭 Twi / Akan (Ghana)</option>
+                            <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
+                            <option value="pt">🇵🇹 Português (Portuguese)</option>
+                            <option value="zh">🇨🇳 中文 (Chinese)</option>
+                            <option value="ar">🇸🇦 العربية (Arabic)</option>
+                            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Controls system notifications, captions preference, and localized UI tags across your sessions.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== MOBILE NATIVE BOTTOM NAVIGATION BAR (NATIVE THUMBS UX) ==================== -->
+    <nav class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" data-navigate-tab="groups-catalog">
+            <span class="mobile-icon">👥</span>
+            <span>Groups</span>
+        </button>
+        <button class="mobile-nav-item" data-navigate-tab="group-detail">
+            <span class="mobile-icon">📂</span>
+            <span>Records</span>
+        </button>
+        <button class="mobile-nav-item" data-navigate-tab="live-room">
+            <span class="mobile-icon">🎙️</span>
+            <span>Live</span>
+        </button>
+        <button class="mobile-nav-item" data-navigate-tab="calendar-view">
+            <span class="mobile-icon">📅</span>
+            <span>Events</span>
+        </button>
+        <button class="mobile-nav-item" data-navigate-tab="vault-manager">
+            <span class="mobile-icon">🔐</span>
+            <span>Vault</span>
+        </button>
+        <button class="mobile-nav-item" data-navigate-tab="customize-view">
+            <span class="mobile-icon">🎨</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- ==================== TOAST ALERTS ==================== -->
+    <div id="toast-container"></div>
+
+    <!-- ==============================================================
+         ALL INTERACTIVE MODALS
+         ============================================================== -->
+
+    <!-- MODAL 1: AVATAR CROP AND PREVIEW STEP -->
+    <div class="modal-overlay" id="avatar-cropper-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">📷 Crop &amp; Preview Profile Photo</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body cropper-modal-body">
+                <!-- Drop Zone -->
+                <div id="cropper-drop-zone" class="cropper-drop-zone">
+                    <div class="cropper-drop-icon">📤</div>
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem;">Drag &amp; Drop Photo Here</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">or click to browse from your device (PNG, JPG, WebP)</p>
+                    <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- Editor Canvas Area -->
+                <div id="cropper-editor-area" class="cropper-editor-area">
+                    <div class="cropper-canvas-wrapper">
+                        <canvas id="avatar-crop-canvas"></canvas>
+                        <div class="crop-guide-circle"></div>
+                    </div>
+
+                    <div class="cropper-controls-row">
+                        <div class="cropper-zoom-controls">
+                            <span style="font-size: 0.85rem;">🔍 Zoom:</span>
+                            <input type="range" id="cropper-zoom-slider" min="50" max="300" value="100" class="cropper-zoom-slider">
+                        </div>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);">Tip: Click &amp; drag canvas to pan image</span>
+                    </div>
+
+                    <!-- Preset Enhancement Filters -->
+                    <div>
+                        <label class="form-label">Preset Enhancements</label>
+                        <div class="cropper-filter-chips">
+                            <button class="filter-chip-btn cropper-filter-chip active" data-filter="none">Original</button>
+                            <button class="filter-chip-btn cropper-filter-chip" data-filter="contrast(1.1) brightness(1.05)">Enhanced</button>
+                            <button class="filter-chip-btn cropper-filter-chip" data-filter="sepia(0.25) saturate(1.2)">Warm</button>
+                            <button class="filter-chip-btn cropper-filter-chip" data-filter="contrast(1.2) drop-shadow(0 0 4px rgba(56,189,248,0.4))">Studio</button>
+                            <button class="filter-chip-btn cropper-filter-chip" data-filter="grayscale(1)">B&amp;W Classic</button>
+                        </div>
+                    </div>
+
+                    <!-- Side-by-Side Live Previews (Circle & Square) -->
+                    <div class="cropper-previews-section">
+                        <div class="preview-box">
+                            <div class="preview-avatar-circle">
+                                <img id="preview-crop-circle-img" alt="Circular Crop Preview">
+                            </div>
+                            <span class="preview-label">Circular Avatar Preview</span>
+                        </div>
+                        <div class="preview-box">
+                            <div class="preview-avatar-square">
+                                <img id="preview-crop-square-img" alt="Square Crop Preview">
+                            </div>
+                            <span class="preview-label">Square Directory Preview</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Profile.commitCroppedAvatar()">Upload &amp; Save Profile Photo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: JOIN GROUP (PASSWORD & DYNAMIC CRITERIA WITH AUTOFILL) -->
+    <div class="modal-overlay" id="join-group-modal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title">🔑 Join <span id="join-modal-group-title">Group</span></h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: var(--text-primary); font-weight: 700;">
+                            <span>Group Entry Password Required:</span>
+                            <span style="font-size: 0.78rem; font-weight: 500; color: var(--text-muted);">(Set by group admins)</span>
+                        </label>
+                        <div class="input-with-button">
+                            <input type="password" id="join-group-password-input" class="form-control" placeholder="Enter group password...">
+                            <button class="btn btn-secondary" onclick="Vault.renderHistoryPicker('join-group-password-input'); App.openModal('reuse-password-modal');" title="Pick from Vault or Reuse Old Password">
+                                🔄 Pick / Reuse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-fill Action Strip -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: var(--bg-tertiary); padding: 0.75rem 1rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Fill Group Criteria Records</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">Admin-defined criteria fields for this association</div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="Profile.autoFillCriteriaForm('join-criteria-fields-container')">
+                        <span>✨</span> Auto-fill from My Master Record
+                    </button>
+                </div>
+
+                <div id="join-criteria-fields-container">
+                    <!-- Populated dynamically based on group criteria -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Groups.submitJoinGroup()">Verify Password &amp; Submit Records</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: REQUEST PASSWORD FROM ADMIN -->
+    <div class="modal-overlay" id="request-password-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">✉️ Request Password from Admin</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Send an instant message directly to the admins of <strong id="pwd-request-group-title">Group</strong> (<span id="pwd-request-admins-display">Admins</span>) to request the joining password.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" id="pwd-request-name" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Your Contact / Email</label>
+                    <input type="email" id="pwd-request-email" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message / Note to Admin (e.g. Graduation Year, Department, Hometown Clan)</label>
+                    <textarea id="pwd-request-msg" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Groups.submitPasswordRequest()">Send Request to Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CRITERIA MANAGER (ONE ADMIN AT A TIME) -->
+    <div class="modal-overlay" id="criteria-manager-modal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ Configure Association Criteria</h3>
+                <button class="modal-close-btn" onclick="Groups.releaseCriteriaLock()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="criteria-lock-notice" style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    <!-- Lock status -->
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Current Criteria Fields:</h4>
+                    <div id="criteria-fields-editor-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Add New Criteria Field -->
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">➕ Add New Criteria Field</h4>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.75rem; align-items: flex-end;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Field Title</label>
+                            <input type="text" id="new-criteria-label" class="form-control" placeholder="e.g. Secondary School House">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Input Type</label>
+                            <select id="new-criteria-type" class="form-control">
+                                <option value="text">Single Line Text</option>
+                                <option value="date">Date</option>
+                                <option value="textarea">Multi-line Paragraph</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; height: 38px;">
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+                                <input type="checkbox" id="new-criteria-required" checked> Mandatory
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="Groups.addNewCriteriaField()">Add Field</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="Groups.releaseCriteriaLock()">Done &amp; Release Session</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: CHANGE ADMINS (DUAL ADMIN TRANSFER) -->
+    <div class="modal-overlay" id="change-admin-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔄 Reassign Group Administrators</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Each group is governed by exactly two admins. Any current admin can reassign admin privileges to another group member.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Admin 1 (Primary Admin)</label>
+                    <select id="change-admin-1-select" class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Admin 2 (Co-Admin)</label>
+                    <select id="change-admin-2-select" class="form-control"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Groups.saveAdminChanges()">Save Administrator Reassignment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: GROUP PASSWORD SETTINGS -->
+    <div class="modal-overlay" id="group-password-settings-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔑 Change Group Password</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Only group admins can view and update the joining password.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">New Group Joining Password</label>
+                    <div class="input-with-button">
+                        <input type="text" id="admin-group-password-input" class="form-control" style="font-family: monospace;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('admin-group-password-input').value = Vault.generatePassword({ length: 14 });" title="Suggest Strong Password">
+                            🎲 Suggest
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Groups.saveGroupPasswordSettings()">Save Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: SHARE GROUP INVITE LINK & QR CODE -->
+    <div class="modal-overlay" id="share-group-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">📱 Share Group Invite &amp; QR Code</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <h4 id="share-group-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Group</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    Members can scan this QR code or use the link to open this group directly in AffinityHub.
+                </p>
+
+                <div id="share-qrcode-container" style="display: inline-block; padding: 1rem; background: #ffffff; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 1.25rem;"></div>
+
+                <div class="form-group" style="text-align: left;">
+                    <label class="form-label">Shareable Link</label>
+                    <div class="input-with-button">
+                        <input type="text" id="share-link-input" class="form-control" readonly>
+                        <button class="btn btn-primary" onclick="Groups.copyShareLink()">Copy Link</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 8: CREATE NEW GROUP -->
+    <div class="modal-overlay" id="create-group-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ Create Association or Group</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Group Title / Association Name</label>
+                    <input type="text" id="new-group-title" class="form-control" placeholder="e.g. Prempeh College '10 Alumni, MTN Tech Fellowship">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Category</label>
+                    <select id="new-group-category" class="form-control">
+                        <option value="school">School Alumni (Completed same school)</option>
+                        <option value="workplace">Workplace (Work at the same place)</option>
+                        <option value="hometown">Hometown (Come from the same place)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description / Mission Statement</label>
+                    <textarea id="new-group-desc" class="form-control" rows="2" placeholder="Brief statement about the purpose and goals of the association..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Initial Group Password (Required to Join)</label>
+                    <div class="input-with-button">
+                        <input type="text" id="new-group-password" class="form-control" style="font-family: monospace;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('new-group-password').value = Vault.generatePassword({ length: 14 });">
+                            🎲 Suggest
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designate Co-Admin (Admin 2)</label>
+                    <input type="text" id="new-group-admin2" class="form-control" placeholder="Name of second administrator">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Groups.submitCreateGroup()">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: MEMBER RECORD DETAIL MODAL -->
+    <div class="modal-overlay" id="member-record-detail-modal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="member-detail-title">Member Record</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body" id="member-detail-body">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 10: CREATE INTER-GROUP SUMMIT -->
+    <div class="modal-overlay" id="create-summit-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🤝 Connect Two Groups (Inter-Group Summit)</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Summit Title</label>
+                    <input type="text" id="summit-title" class="form-control" placeholder="e.g. Alumni &amp; Workplace Joint Career Symposium">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Group A (Host)</label>
+                        <select id="summit-group-a" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Group B (Partner)</label>
+                        <select id="summit-group-b" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Inter-Group Chairperson (Optional)</label>
+                    <select id="summit-chairperson-select" class="form-control">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Single Joint Connecting Password</label>
+                    <div class="input-with-button">
+                        <input type="text" id="summit-joint-pwd" class="form-control" style="font-family: monospace;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('summit-joint-pwd').value = 'InterConn#' + Vault.generatePassword({ length: 12, symbols: false });">
+                            🎲
+                        </button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="summit-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time</label>
+                        <input type="text" id="summit-time" class="form-control" value="18:00 GMT">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Joint Agenda</label>
+                    <textarea id="summit-agenda" class="form-control" rows="2" placeholder="Topics for joint discussion..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="InterGroup.submitCreateSummit()">Schedule Connection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 11: JOINT SHARE MODAL -->
+    <div class="modal-overlay" id="joint-share-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🤝 Joint Connecting Credentials</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <h4 id="joint-share-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Joint Summit</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    One unified connecting password, link, and QR Code for members of both groups.
+                </p>
+
+                <div id="joint-share-qrcode-box" style="display: inline-block; padding: 1rem; background: #ffffff; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 1.25rem;"></div>
+
+                <div style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Single Joint Connecting Password</div>
+                    <div id="joint-share-pwd-display" style="font-size: 1.1rem; font-weight: 700; color: var(--accent); font-family: monospace; margin-top: 0.2rem;"></div>
+                </div>
+
+                <div class="form-group" style="text-align: left;">
+                    <label class="form-label">Direct Joint Access Link</label>
+                    <div class="input-with-button">
+                        <input type="text" id="joint-share-link-input" class="form-control" readonly>
+                        <button class="btn btn-primary" onclick="InterGroup.copyJointShareLink()">Copy</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 12: ADD CALENDAR EVENT -->
+    <div class="modal-overlay" id="add-event-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">📅 Schedule Group Event</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Group</label>
+                    <select id="event-group-select" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Event Title</label>
+                    <input type="text" id="event-title-input" class="form-control" placeholder="e.g. End of Year Reunion &amp; Awards">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="event-date-input" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time</label>
+                        <input type="time" id="event-time-input" class="form-control" value="18:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Venue / Meeting URL</label>
+                    <input type="text" id="event-venue-input" class="form-control" value="AffinityHub Live Studio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description / Agenda</label>
+                    <textarea id="event-desc-input" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem;">
+                        <input type="checkbox" id="event-is-live" checked>
+                        <span>Enable Live Audio/Video Discussion Room for this event</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="Calendar.submitAddEvent()">Schedule Event</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 13: REUSE OLD PASSWORD / PASSWORD HISTORY -->
+    <div class="modal-overlay" id="reuse-password-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔄 Reuse Old Password</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Select any previously used password to reuse and populate into your input:
+                </p>
+                <div id="history-reuse-list">
+                    <!-- Populated by Vault.renderHistoryPicker() -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 15: AUTONOMOUS ACCOUNT CREATION (INDEPENDENT OF JOINING/CREATING GROUPS) -->
+    <div class="modal-overlay" id="autonomous-register-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">✨ Create Account</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    Account creation is completely autonomous from joining or creating any group. Provide all required contact resources below and choose your preferred verification channel.
+                </p>
+
+                <form id="autonomous-register-form" onsubmit="event.preventDefault(); AuthDB.startAutonomousRegistration({
+                    fullName: document.getElementById('reg-fullname').value,
+                    email: document.getElementById('reg-email').value,
+                    whatsapp: document.getElementById('reg-whatsapp').value,
+                    phone: document.getElementById('reg-phone').value,
+                    password: document.getElementById('reg-password').value,
+                    preferredChannel: document.querySelector('input[name=\'reg-verify-channel\']:checked')?.value || 'email',
+                    vocation: document.getElementById('reg-vocation')?.value,
+                    location: document.getElementById('reg-location')?.value
+                });">
+                    <div class="form-group">
+                        <label class="form-label">Full Name <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="reg-fullname" class="form-control" placeholder="e.g. Samuel Elijah Mensah" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Email Address <span style="color: var(--danger);">*</span></label>
+                            <input type="email" id="reg-email" class="form-control" placeholder="user@affinity.org" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">WhatsApp Number <span style="color: var(--danger);">*</span></label>
+                            <input type="tel" id="reg-whatsapp" class="form-control" placeholder="+233 24 000 0000" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Phone / SMS Number <span style="color: var(--danger);">*</span></label>
+                            <input type="tel" id="reg-phone" class="form-control" placeholder="+233 24 000 0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Primary Vocation / Field</label>
+                            <input type="text" id="reg-vocation" class="form-control" placeholder="e.g. Solutions Engineer">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Password <span style="color: var(--danger);">*</span></label>
+                        <div class="input-with-button">
+                            <input type="text" id="reg-password" class="form-control" style="font-family: monospace;" required>
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('reg-password').value = Vault.generatePassword({ length: 16 });">
+                                🎲 Suggest Strong
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preferred Verification Channel Selector -->
+                    <div class="form-group" style="background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 0.5rem;">
+                        <label class="form-label" style="color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            Choose Where to Receive Your 6-Digit Verification Code:
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                            <label class="card" style="padding: 0.65rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; text-align: left;">
+                                <input type="radio" name="reg-verify-channel" value="email" checked>
+                                <div>
+                                    <div style="font-size: 0.82rem; font-weight: 700;">✉️ Email</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Inbox OTP</div>
+                                </div>
+                            </label>
+                            <label class="card" style="padding: 0.65rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; text-align: left;">
+                                <input type="radio" name="reg-verify-channel" value="whatsapp">
+                                <div>
+                                    <div style="font-size: 0.82rem; font-weight: 700;">💬 WhatsApp</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Direct message</div>
+                                </div>
+                            </label>
+                            <label class="card" style="padding: 0.65rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; text-align: left;">
+                                <input type="radio" name="reg-verify-channel" value="sms">
+                                <div>
+                                    <div style="font-size: 0.82rem; font-weight: 700;">📱 SMS</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Cellular code</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                        <button type="button" class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                        <button type="submit" class="btn btn-primary">Dispatch Code &amp; Proceed</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 16: OMNICHANNEL OTP VERIFICATION DIALOG -->
+    <div class="modal-overlay" id="otp-verification-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔐 Enter 6-Digit Verification Code</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.35rem;" id="otp-channel-icon">✉️</div>
+                <h4 style="font-size: 1.1rem; font-weight: 700;" id="otp-channel-name">Verification Dispatch</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                    We sent a verification code to: <strong id="otp-target-display" style="color: var(--accent);">user@affinity.org</strong>
+                </p>
+
+                <!-- Zero-Backlog Simulated Delivery Box -->
+                <div id="otp-simulation-delivery-box" style="margin-top: 1rem;"></div>
+
+                <!-- 6-Digit Boxes -->
+                <div class="otp-inputs-row">
+                    <input type="text" id="otp-digit-1" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                    <input type="text" id="otp-digit-2" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                    <input type="text" id="otp-digit-3" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                    <input type="text" id="otp-digit-4" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                    <input type="text" id="otp-digit-5" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                    <input type="text" id="otp-digit-6" class="otp-digit-box" maxlength="1" inputmode="numeric">
+                </div>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    <span>Code expires in: <strong id="otp-countdown-timer" style="color: var(--warning);">05:00</strong></span>
+                    <span>&bull;</span>
+                    <button id="otp-resend-btn" class="btn btn-sm btn-outline" disabled>Resend Code</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Cancel</button>
+                <button class="btn btn-primary" onclick="AuthDB.verifyOtpSubmission()">Verify &amp; Establish Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 17: USER LOGIN -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔑 Sign In to AffinityHub</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); AuthDB.login(document.getElementById('login-identifier').value, document.getElementById('login-password').value);">
+                    <div class="form-group">
+                        <label class="form-label">Email, Phone, or WhatsApp Number</label>
+                        <input type="text" id="login-identifier" class="form-control" placeholder="Enter email or registered phone..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="login-password" class="form-control" required>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
+                        <a href="javascript:void(0)" onclick="App.closeModal('login-modal'); App.openModal('autonomous-register-modal');" style="font-size: 0.85rem; color: var(--accent); text-decoration: none;">
+                            New here? Create autonomous account
+                        </a>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 18: SWITCH ACTIVE DATABASE ACCOUNT -->
+    <div class="modal-overlay" id="switch-account-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">👥 Switch Account Database Profile</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Select any stored user profile to switch active session instantaneously:
+                </p>
+                <div id="accounts-database-list"></div>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 0.5rem;" onclick="App.closeModal('switch-account-modal'); App.openModal('autonomous-register-modal');">
+                    ➕ Register Another Account Autonomously
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 19: SYSTEM AUDIO PERMISSION HELP & AUTO-RETRY -->
+    <div class="modal-overlay" id="system-audio-help-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">🔊 Fix System Audio Sharing Permissions</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); padding: 0.85rem; border-radius: var(--radius-md);">
+                    <span style="font-size: 1.8rem;">⚠️</span>
+                    <div>
+                        <div style="font-weight: 700; color: var(--danger); font-size: 0.95rem;">System Audio Capture Was Not Granted</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Your shared screen is broadcasting video, but desktop and slide audio is currently blocked by browser permissions.</div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">How to Share System Audio in Chrome, Edge, or Firefox:</h4>
+                <ol style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.7; margin-bottom: 1.25rem;">
+                    <li>When the browser screen-sharing prompt appears, click on <strong>Entire Screen</strong> or <strong>Chrome Tab</strong>.</li>
+                    <li>Look at the bottom-left corner of the sharing pop-up and <strong>check the box: "Also share system audio"</strong> (or "Share tab audio").</li>
+                    <li>Click <strong>Share</strong>. Your live recording will now capture both your microphone and computer audio seamlessly!</li>
+                </ol>
+
+                <div style="background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.4rem;">Ready to capture audio?</div>
+                    <button class="btn btn-primary" onclick="LiveSession.autoRetryScreenShareWithAudio()">
+                        <span>🔄</span> Auto-Retry Screen Share with Audio Now
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 20: RECORDING TIMELINE & KEY MOMENTS JUMP PLAYBACK -->
+    <div class="modal-overlay" id="recording-timeline-modal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title">🎥 Recording Timeline &amp; Key Moments</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; background: var(--bg-tertiary); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.05rem;" id="recording-modal-title">Session Recording</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Includes Microphone Audio + System Audio Mixed Track</div>
+                    </div>
+                    <span class="badge badge-primary" style="font-size: 0.85rem;" id="recording-modal-duration">00:00</span>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">📌 Jump to Key Timeline Moments:</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Click any timestamp button to seek directly to that key moment in the session recording.</p>
+                    <div id="recording-timeline-items">
+                        <!-- Populated by LiveSession.presentRecordingTimelineModal() -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="LiveSession.downloadRecordingPackage()">
+                    <span>📥</span> Download Timeline Report (HTML/TXT)
+                </button>
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 21: AI GATEWAY TAILORED MEETING AGENDA DRAFTER -->
+    <div class="modal-overlay" id="ai-agenda-drafter-modal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title">🤖 AI Gateway Meeting Agenda Drafter</h3>
+                <button class="modal-close-btn" data-dismiss-modal>✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    Draft a tailored, minute-by-minute meeting agenda for <strong id="ai-agenda-group-title">Association</strong> based on event objectives and selected member interest domains.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Event Purpose &amp; Primary Objectives <span style="color: var(--danger);">*</span></label>
+                    <textarea id="ai-event-purpose" class="form-control" rows="2" placeholder="e.g. Annual Alumni General Meeting, \$500k STEM Endowment Fund Launch, and Mentorship Cohort Review"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Meeting Duration</label>
+                        <select id="ai-agenda-duration" class="form-control">
+                            <option value="30">30 Minutes (Briefing)</option>
+                            <option value="60" selected>60 Minutes (Standard)</option>
+                            <option value="90">90 Minutes (Deep Dive)</option>
+                            <option value="120">120 Minutes (Full Assembly / AGM)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Agenda Tone</label>
+                        <select id="ai-agenda-tone" class="form-control">
+                            <option value="Strategic & Inspiring" selected>Strategic &amp; Inspiring</option>
+                            <option value="Professional & Corporate">Professional &amp; Corporate</option>
+                            <option value="Action-Oriented & Direct">Action-Oriented &amp; Direct</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Member Interests Selector -->
+                <div class="form-group">
+                    <label class="form-label">Select Cohort / Member Interests to Integrate</label>
+                    <div id="ai-member-interests-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.35rem;">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <button id="ai-generate-agenda-btn" class="btn btn-primary" onclick="AIAgenda.generateTailoredAgenda()">
+                        <span>⚡</span> Synthesize Tailored Agenda with AI Gateway
+                    </button>
+                </div>
+
+                <!-- Result Box -->
+                <div id="ai-agenda-result-area" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--accent);">📋 AI-Generated Tailored Agenda</h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Editable below before applying</span>
+                    </div>
+                    <textarea id="ai-generated-agenda-text" class="form-control" rows="12" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;"></textarea>
+
+                    <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="AIAgenda.copyAgendaToLiveChat()">
+                            <span>💬</span> Copy to Live Session Chat
+                        </button>
+                        <button class="btn btn-success" onclick="AIAgenda.applyToCalendarEvent()">
+                            <span>📅</span> Prefill into Calendar Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss-modal>Close</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="js/qrcode.js"></script>
+<script src="js/vault.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/auth-db.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/intergroup.js"></script>
+<script src="js/ai-agenda.js"></script>
+<script src="js/activity.js"></script>
+<script src="js/customize.js"></script>
+<script src="js/live-session.js"></script>
+<script src="js/app.js"></script>
+
+<!-- Mobile PWA Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.protocol === 'file:')) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').then(function(reg) {
+                console.log('AffinityHub Service Worker active for mobile offline caching:', reg.scope);
+            }).catch(function(err) {
+                console.log('Service Worker setup note:', err);
+            });
+        });
+    }
+</script>
+
+</body>
+</html>
